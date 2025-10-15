@@ -1,7 +1,7 @@
 # Service Marketplace Backend (starter)
 
 ## Features
-- JWT authentication (User / Provider / Admin)
+- JWT authentication (User / Provider / Admin role)
 - Password hashing with bcrypt
 - ES6 modules, Express, Mongoose (MongoDB Atlas)
 

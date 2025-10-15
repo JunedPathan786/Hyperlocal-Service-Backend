@@ -1,4 +1,4 @@
-const User = require("../models/user.models.js");
+const User = require("../models/User.model.js");
 const jwt = require("jsonwebtoken");
 const { ApiError } = require("../utils/ApiError.js");
 const { ApiResponse } = require("../utils/ApiResponse.js");
@@ -152,6 +152,3 @@ module.exports = {
   refreshAccessToken,
   getUserProfile,
 };
-
-
-
