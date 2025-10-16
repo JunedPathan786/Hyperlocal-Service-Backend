@@ -1,1 +1,3 @@
-export const DB_NAME = 'urban_service_db'
+module.exports = {
+	DB_NAME: 'urban_service_db',
+};

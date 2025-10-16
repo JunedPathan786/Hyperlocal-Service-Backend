@@ -1,106 +1,71 @@
-const { asyncHandler } = require("../utils/asyncHandler.js");
-const { ApiError } = require("../utils/ApiError.js");
-const { ApiResponse } = require("../utils/ApiResponse.js");
-const User = require("../models/User.model.js");
+const User = require("../models/User.model");
+const Otp = require("../models/Otp.model");
 const jwt = require("jsonwebtoken");
-const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const { generateOTP, isOTPExpired } = require("../utils/OTP");
+const { asyncHandler } = require("../utils/asyncHandler");
+const { ApiError } = require("../utils/ApiError");
+const { ApiResponse } = require("../utils/ApiResponse");
 
-const generateAccessAndRefereshToken = async (userId) => {
-  try {
-    const user = await User.findOne(userId);
-    const accessToken = user.generateAccessToken();
-    const refreshToken = user.generateRefreshToken();
+exports.sendOtp = asyncHandler(async (req, res) => {
+  const { phone } = req.body;
+  if (!phone) throw new ApiError(400, "Phone number is required");
 
-    user.refreshToken = refreshToken;
-    await user.save({ validateBeforeSave: false });
+  const otp = generateOTP();
+  const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
-    return { accessToken, refreshToken };
-  } catch (error) {
-    throw new ApiError(
-      500,
-      "Something went wrong while generating referesh and access token"
-    );
-  }
-};
-
-const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password, role } = req.body;
-
-  if (!name || !email || !password) {
-    throw new ApiError(400, "All fields are required");
+  let otpDoc = await Otp.findOne({ phone });
+  if (!otpDoc) {
+    otpDoc = await Otp.create({ phone, otp, otpExpiry });
+  } else {
+    otpDoc.otp = otp;
+    otpDoc.otpExpiry = otpExpiry;
+    await otpDoc.save();
   }
 
-  const existingUser = await User.findOne({ email });
-  if (existingUser) {
-    throw new ApiError(409, "User already exists");
-  }
-
-  const user = await User.create({ name, email, password, role });
-
-  const accessToken = user.generateAccessToken();
-  const refreshToken = user.generateRefreshToken();
-
-  user.refreshToken = refreshToken;
-  await user.save({ validateBeforeSave: false });
-
-  res
-    .cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    })
-    .cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    })
-    .status(201)
-    .json(
-      new ApiResponse(
-        201,
-        {
-          user: {
-            id: user._id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-          },
-          accessToken,
-        },
-        "User registered successfully"
-      )
-    );
+  console.log(`OTP for ${phone}: ${otp}`);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { phone, otp }, "OTP sent (mock)"));
 });
 
-const loginUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+exports.verifyOtp = asyncHandler(async (req, res) => {
+  const { phone, otp, name, email, password } = req.body;
+  if (!phone || !otp) throw new ApiError(400, "Phone and OTP are required");
 
-  if (!email || !password)
-    throw new ApiError(400, "Email and password are required");
+  const otpDoc = await Otp.findOne({ phone });
+  if (!otpDoc) throw new ApiError(400, "No OTP generated for this phone");
+  if (isOTPExpired(otpDoc.otpExpiry)) throw new ApiError(400, "OTP expired");
+  if (otpDoc.otp !== otp) throw new ApiError(400, "Invalid OTP");
 
-  const user = await User.findOne({ email });
-  if (!user) throw new ApiError(404, "User not found");
+  let user = await User.findOne({ phone });
+  if (!user) {
+    const newUserData = {
+      phone,
+      name: name || undefined,
+      email: email || undefined,
+    };
+    if (password) newUserData.password = await bcrypt.hash(password, 10);
+    user = await User.create(newUserData);
+  } else {
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (password) user.password = await bcrypt.hash(password, 10);
+    await user.save();
+  }
 
-  const isPasswordValid = await user.isPasswordCorrect(password);
-  if (!isPasswordValid) throw new ApiError(401, "Invalid credentials");
+  user.isVerified = true;
+  await user.save();
 
-  const accessToken = user.generateAccessToken();
-  const refreshToken = user.generateRefreshToken();
+  await Otp.deleteOne({ phone });
 
-  user.refreshToken = refreshToken;
-  await user.save({ validateBeforeSave: false });
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_ACCESS_SECRET || "secret",
+    { expiresIn: "1d" }
+  );
 
-  res
-    .cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    })
-    .cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    })
+  return res
     .status(200)
     .json(
       new ApiResponse(
@@ -108,65 +73,58 @@ const loginUser = asyncHandler(async (req, res) => {
         {
           user: {
             id: user._id,
+            phone: user.phone,
             name: user.name,
             email: user.email,
-            role: user.role,
           },
-          accessToken,
+          token,
+        },
+        "OTP verified"
+      )
+    );
+});
+
+exports.loginUser = asyncHandler(async (req, res) => {
+  const { phone, password } = req.body;
+  if (!phone || !password)
+    throw new ApiError(400, "Phone and password are required");
+
+  const user = await User.findOne({ phone });
+  if (!user) throw new ApiError(404, "User not found");
+
+  const isMatch = await bcrypt.compare(password, user.password || "");
+  if (!isMatch) throw new ApiError(401, "Invalid credentials");
+  if (!user.isVerified) throw new ApiError(403, "User not verified");
+
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_ACCESS_SECRET || "secret",
+    { expiresIn: "1d" }
+  );
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        {
+          user: {
+            id: user._id,
+            phone: user.phone,
+            name: user.name,
+            email: user.email,
+          },
+          token,
         },
         "Login successful"
       )
     );
 });
 
-const logoutUser = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user.id);
-  if (!user) throw new ApiError(404, "User not found");
-
-  user.refreshToken = null;
-  await user.save({ validateBeforeSave: false });
-
-  res
-    .clearCookie("accessToken")
-    .clearCookie("refreshToken")
+exports.logoutUser = asyncHandler(async (req, res) => {
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
+  return res
     .status(200)
     .json(new ApiResponse(200, {}, "Logged out successfully"));
 });
-
-const refreshAccessToken = asyncHandler(async (req, res) => {
-  const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
-
-  if (!refreshToken) throw new ApiError(401, "No refresh token provided");
-
-  const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-
-  const user = await User.findById(decoded.id);
-  if (!user || user.refreshToken !== refreshToken)
-    throw new ApiError(403, "Invalid or expired refresh token");
-
-  const newAccessToken = user.generateAccessToken();
-
-  res.cookie("accessToken", newAccessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-  });
-
-  res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        { accessToken: newAccessToken },
-        "Access token refreshed"
-      )
-    );
-});
-
-module.exports = {
-  generateAccessAndRefereshToken,
-  registerUser,
-  loginUser,
-  logoutUser,
-  refreshAccessToken,
-};

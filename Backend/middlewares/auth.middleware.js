@@ -5,7 +5,6 @@ const User = require("../models/User.model");
 
 exports.protect = asyncHandler(async (req, res, next) => {
   try {
-    const token
     const token = authHeader.startsWith("Bearer ")
       ? authHeader.split(" ")[1]
       : null;
