@@ -1,47 +1,43 @@
+const { ApiError } = require("../utils/ApiError");
+const { asyncHandler } = require("../utils/asyncHandler");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User.model");
 
-exports.protect = async (req, res, next) => {
+exports.protect = asyncHandler(async (req, res, next) => {
   try {
-    let token;
-
-    if (req.cookies?.accessToken) {
-      token = req.cookies.accessToken;
-    } else if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer")
-    ) {
-      token = req.headers.authorization.split(" ")[1];
-    }
+    const token
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : null;
 
     if (!token) {
-      return res.status(401).json({ message: "Not authorized, no token" });
+      return next(new ApiError(401, "Not authorized: No token provided"));
     }
 
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-
-    req.user = await User.findById(decoded.id).select("-password");
-    if (!req.user) {
-      return res.status(404).json({ message: "User not found" });
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+    } catch (err) {
+      return next(new ApiError(401, "Invalid or expired token"));
     }
 
+    const user = await User.findById(decoded.id).select("-passwordHash");
+    if (!user) {
+      return next(new ApiError(401, "User not found"));
+    }
+
+    req.user = user;
     next();
-  } catch (error) {
-    console.error("Auth Error:", error);
-    if (error.name === "TokenExpiredError") {
-      return res.status(401).json({ message: "Token expired" });
-    }
-    res.status(401).json({ message: "Not authorized, token invalid" });
+  } catch (err) {
+    next(err); // Pass any unexpected errors to global error handler
   }
-};
+});
 
-exports.authorizeRoles = (...roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return res
-        .status(403)
-        .json({ message: `roles ${req.user.role} not allowed to access this route`});
-    }
+exports.authorize =
+  (...allowedRoles) =>
+  (req, res, next) => {
+    if (!req.user) return next(new ApiError(401, "Not authenticated"));
+    if (!allowedRoles.includes(req.user.role))
+      return next(new ApiError(403, "Forbidden"));
     next();
   };
-};
