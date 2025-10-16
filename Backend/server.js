@@ -1,9 +1,16 @@
-const http = require("http")
-const app = require('./app')
-const port = process.env.PORT || 3000
+require("dotenv").config();
+const app = require("./app");
+const connectDB = require("./db/db");
 
-const server = http.createServer(app)
-
-server.listen(port, () => {
-    console.log(`server is running on port ${port}`);
-})
+// connect to MongoDB first
+connectDB()
+  .then(() => {
+    // only start server after successful DB connection
+    const PORT = process.env.PORT || 8000;
+    app.listen(PORT, () => {
+      console.log(`Server is running at port : ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("MongoDB connection failed!", error);
+  });

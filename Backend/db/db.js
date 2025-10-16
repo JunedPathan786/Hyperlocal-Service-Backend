@@ -1,16 +1,16 @@
-const mongoose = require('mongoose')  
+const mongoose = require("mongoose");
+const { DB_NAME } = require("../constants");
 
-function connedDB() {
-  const dbURI = process.env.DB_CONNECT;
+const connectDB = async () => {
+  try {
+    const connectionInstance = await mongoose.connect(
+      `${process.env.MONGODB_URI}/${DB_NAME}`
+    );
+    console.log(`\n MongoDB connected !! DB HOST: ${connectionInstance.connection.host}`);
+  } catch (error) {
+    console.error("MONGODB connection Failed:", error);
+    process.exit(1);
+  }
+};
 
-  mongoose
-    .connect(dbURI)
-    .then(() => {
-      console.log("MongoDB connected successfully");
-    })
-    .catch((err) => {
-      console.error("MongoDB connection error:", err);
-    });
-}
-
-module.exports = connedDB;
+module.exports = connectDB;

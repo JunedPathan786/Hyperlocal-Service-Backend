@@ -1,11 +1,11 @@
 const User = require("../models/User.model.js");
-const jwt = require("jsonwebtoken");
 const { ApiError } = require("../utils/ApiError.js");
 const { ApiResponse } = require("../utils/ApiResponse.js");
 const { asyncHandler } = require("../utils/asyncHandler.js");
+const jwt = require("jsonwebtoken");
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, phone } = req.body;
 
   if (!name || !email || !password) {
     throw new ApiError(400, "All fields are required");
@@ -16,7 +16,7 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(409, "User already exists");
   }
 
-  const user = await User.create({ name, email, password, role });
+  const user = await User.create({ name, email, password, phone });
 
   const accessToken = user.generateAccessToken();
   const refreshToken = user.generateRefreshToken();
@@ -42,7 +42,7 @@ const registerUser = asyncHandler(async (req, res) => {
           id: user._id,
           name: user.name,
           email: user.email,
-          role: user.role,
+          phone: user.phone,
         },
         accessToken,
       }, "User registered successfully")
@@ -85,7 +85,7 @@ const loginUser = asyncHandler(async (req, res) => {
           id: user._id,
           name: user.name,
           email: user.email,
-          role: user.role,
+          phone: user.phone,
         },
         accessToken,
       }, "Login successful")
