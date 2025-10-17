@@ -3,8 +3,6 @@ const { DB_NAME } = require("../constants");
 
 const connectDB = async () => {
   try {
-    // Use the `dbName` option so mongoose connects to the intended database
-    // regardless of whether the URI already contains a database.
     const connectionInstance = await mongoose.connect(process.env.MONGODB_URI, {
       dbName: DB_NAME,
       useNewUrlParser: true,
