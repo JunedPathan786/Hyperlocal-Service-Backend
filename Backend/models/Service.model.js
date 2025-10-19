@@ -16,10 +16,6 @@ const serviceSchema = new mongoose.Schema(
       type: Number,
       default: 60,
     },
-    image: {
-      type: String,
-      default: null,
-    },
   },
   { timestamps: true }
 );

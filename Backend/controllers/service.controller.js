@@ -4,7 +4,6 @@ const Service = require("../models/Service.model");
 
 exports.createService = asyncHandler(async (req, res) => {
   const { title, description, category, basePrice, durationMin } = req.body;
-  const image = req.file ? req.file.path : null;
 
   if (!title || !basePrice)
     return res
@@ -17,7 +16,6 @@ exports.createService = asyncHandler(async (req, res) => {
     category,
     basePrice,
     durationMin,
-    image,
   });
 
   res

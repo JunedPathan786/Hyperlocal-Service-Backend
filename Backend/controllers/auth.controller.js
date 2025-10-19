@@ -84,7 +84,6 @@ exports.verifyOtp = asyncHandler(async (req, res) => {
   const cookieOpts = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
   };
   res.cookie("accessToken", accessToken, { ...cookieOpts, maxAge: accessMs });
   res.cookie("refreshToken", refreshToken, {
@@ -118,7 +117,9 @@ exports.loginUser = asyncHandler(async (req, res) => {
   if (!user) throw new ApiError(404, "User not found");
 
   const isMatch = await bcrypt.compare(password, user.password || "");
+
   if (!isMatch) throw new ApiError(401, "Invalid credentials");
+
   if (!user.isVerified) throw new ApiError(403, "User not verified");
 
   const accessToken = generateAccessToken(user);
@@ -137,7 +138,6 @@ exports.loginUser = asyncHandler(async (req, res) => {
   const cookieOpts = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
   };
   res.cookie("accessToken", accessToken, { ...cookieOpts, maxAge: accessMs });
   res.cookie("refreshToken", refreshToken, {

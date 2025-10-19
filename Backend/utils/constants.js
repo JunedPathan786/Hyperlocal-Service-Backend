@@ -1,7 +1,15 @@
 const ROLES = {
-  ADMIN: "admin",
-  PROVIDER: "provider",
-  USER: "user",
+  USER: 'user',
+  PROVIDER: 'provider',
+  ADMIN: 'admin'
 };
 
-module.exports = { ROLES };
+const BOOKING_STATUS = {
+  PENDING: 'pending',
+  ACCEPTED: 'accepted',
+  IN_PROGRESS: 'in_progress',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled'
+};
+
+module.exports = { ROLES, BOOKING_STATUS };

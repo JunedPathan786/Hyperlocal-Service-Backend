@@ -1,4 +1,4 @@
-const { ApiResponse } = require("../utils/ApiResponse");
+const {ApiResponse} = require('../utils/ApiResponse')
 const { asyncHandler } = require("../utils/asyncHandler");
 
 exports.getProfile = asyncHandler(async (req, res) => {

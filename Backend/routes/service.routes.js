@@ -7,7 +7,6 @@ const {
 const { protect } = require("../middlewares/auth.middleware");
 const { authorize } = require("../middlewares/role.middleware");
 const { ROLES } = require("../utils/constants");
-const upload = require("../middlewares/upload.middleware");
 
 const router = express.Router();
 
@@ -16,7 +15,6 @@ router.post(
   protect,
   //  authorize('USER', 'PROVIDER', 'ADMIN'),  // allow all for testing
   authorize(ROLES.ADMIN, ROLES.PROVIDER),
-  upload.single("image"),
   [
     body("title").notEmpty().withMessage("Title required"),
     body("basePrice").isNumeric().withMessage("Base price must be a number"),
