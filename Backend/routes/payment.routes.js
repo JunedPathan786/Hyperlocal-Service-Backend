@@ -1,8 +1,8 @@
 const express = require('express');
-const { protect } = require('../middlewares/auth.middleware');
-const { createOrder, verifyPayment } = require('../controllers/payment.controller');
-
 const router = express.Router();
+const { createOrder, verifyPayment } = require('../controllers/payment.controller');
+const { protect } = require('../middlewares/auth.middleware');
+
 
 router.post('/order', protect, createOrder);
 router.post('/verify', protect, verifyPayment);

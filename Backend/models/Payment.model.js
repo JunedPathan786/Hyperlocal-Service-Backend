@@ -12,7 +12,9 @@ const paymentSchema = new mongoose.Schema(
       enum: ["pending", "paid", "refunded"],
       default: "pending",
     },
-    providerPayout: Number,
+    razorpayOrderId: String,
+    razorpayPaymentId: String,
+    razorpaySignature: String,
   },
   { timestamps: true }
 );

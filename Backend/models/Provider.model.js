@@ -6,10 +6,10 @@ const providerSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      unique: true,
     },
     bio: {
       type: String,
-      default: "",
     },
     servicesOffered: [
       {
@@ -20,12 +20,27 @@ const providerSchema = new mongoose.Schema(
     rating: {
       type: Number,
       default: 0,
-      min: 0,
-      max: 5,
+    },
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number],
+        default: [0, 0],
+      },
+    },
+    approved: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }
 );
+
+providerSchema.index({ location: "2dsphere" });
 
 const Provider = mongoose.model("Provider", providerSchema);
 module.exports = Provider;

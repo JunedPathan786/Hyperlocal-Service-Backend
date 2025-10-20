@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      sparse: true,
     },
     password: {
       type: String,
@@ -24,12 +25,7 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
       required: true,
-    },
-    otp: {
-      type: String,
-    },
-    otpExpiry: {
-      type: Date,
+      unique: true,
     },
     isVerified: {
       type: Boolean,
@@ -39,6 +35,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["user", "provider", "admin"],
       default: "user",
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
     },
   },
   { timestamps: true }
@@ -54,21 +54,8 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-userSchema.methods.generateAccessToken = function () {
-  const payload = { id: this._id, role: this.role };
-  const secret =
-    process.env.ACCESS_TOKEN_SECRET ||
-    process.env.JWT_ACCESS_SECRET ||
-    "secret";
-  const expiresIn = process.env.ACCESS_TOKEN_EXPIRY || "1d";
-  return jwt.sign(payload, secret, { expiresIn });
-};
-
-userSchema.methods.generateRefreshToken = function () {
-  const payload = { id: this._id, role: this.role };
-  const secret = process.env.REFRESH_TOKEN_SECRET || "refresh_secret";
-  const expiresIn = process.env.REFRESH_TOKEN_EXPIRY || "10d";
-  return jwt.sign(payload, secret, { expiresIn });
+userSchema.methods.comparePassword = function (password) {
+  return bcrypt.compare(password, this.password || "");
 };
 
 const User = mongoose.model("User", userSchema);

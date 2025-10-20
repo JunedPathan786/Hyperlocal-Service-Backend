@@ -1,35 +1,31 @@
-const {ApiResponse} = require('../utils/ApiResponse')
+const { ApiResponse } = require("../utils/ApiResponse");
 const { asyncHandler } = require("../utils/asyncHandler");
+const User = require("../models/User.model");
 
 exports.getProfile = asyncHandler(async (req, res) => {
   const user = req.user;
-  if (!user)
-    return res
-      .status(401)
-      .json(new ApiResponse(401, null, "Not authenticated"));
+  if (!user) res.status(401).json(new ApiResponse(401, null, "Unauthorized"));
 
-  return res.status(200).json(
+  res.status(200).json(
     new ApiResponse(
       200,
       {
-        id: user._id,
-        name: user.name,
-        phone: user.phone,
-        email: user.email,
-        role: user.role,
-        isVerified: user.isVerified,
+        id: req.user._id,
+        name: req.user.name,
+        phone: req.user.phone,
+        email: req.user.email,
+        role: req.user.role,
+        isVerified: req.user.isVerified,
       },
-      "Profile fetched"
+      "Profile fetched successfully"
     )
   );
 });
 
 exports.updateProfile = asyncHandler(async (req, res) => {
-  const user = req.user;
+  const user = await User.findById(req.user._id).select("+pass");
   if (!user)
-    return res
-      .status(401)
-      .json(new ApiResponse(401, null, "Not authenticated"));
+    return res.status(401).json(new ApiResponse(401, null, "Unauthorized"));
 
   const { name, email, phone, password } = req.body;
   if (name) user.name = name;
@@ -39,29 +35,17 @@ exports.updateProfile = asyncHandler(async (req, res) => {
 
   await user.save();
 
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      {
-        id: user._id,
-        name: user.name,
-        phone: user.phone,
-        email: user.email,
-        role: user.role,
-      },
-      "Profile updated"
-    )
-  );
+  res
+    .status(200)
+    .json(new ApiResponse(200, user, "Profile updated successfully"));
 });
 
 exports.deleteProfile = asyncHandler(async (req, res) => {
   const user = req.user;
   if (!user)
-    return res
-      .status(401)
-      .json(new ApiResponse(401, null, "Not authenticated"));
+    return res.status(401).json(new ApiResponse(401, null, "Unauthorized"));
 
   await user.remove();
 
-  return res.status(200).json(new ApiResponse(200, {}, "User account deleted"));
+  res.status(200).json(new ApiResponse(200, {}, "User account deleted"));
 });

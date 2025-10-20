@@ -1,9 +1,10 @@
 const express = require("express");
-const { getProfile, updateProfile } = require("../controllers/user.controller");
+const router = express.Router();
+const { getProfile, updateProfile, deleteProfile } = require("../controllers/user.controller");
 const { protect } = require("../middlewares/auth.middleware");
 
-const router = express.Router();
 router.get("/me", protect, getProfile);
-router.put("/me", protect, updateProfile);
+router.patch("/me", protect, updateProfile);
+router.delete('/me', deleteProfile)
 
 module.exports = router;

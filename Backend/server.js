@@ -6,9 +6,10 @@ connectDB()
   .then(() => {
     const PORT = process.env.PORT || 8000;
     app.listen(PORT, () => {
-      console.log(`Server is running at port : ${PORT}`);
+      console.log(`Server running on port : ${PORT}`);
     });
   })
   .catch((error) => {
-    console.error("MongoDB connection failed!", error);
+    console.error("MongoDB connection failed:", err.message);
+    process.exit(1);
   });

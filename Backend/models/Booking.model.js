@@ -26,7 +26,10 @@ const bookingSchema = new mongoose.Schema(
       enum: Object.values(BOOKING_STATUS),
       default: BOOKING_STATUS.PENDING,
     },
-    price: { type: Number, required: true },
+    price: {
+      type: Number,
+      required: true,
+    },
   },
   { timestamps: true }
 );

@@ -1,12 +1,17 @@
-const { ApiResponse } = require("../utils/ApiResponse"); // correct
+const { ApiResponse } = require("../utils/ApiResponse");
 
-exports.authorize = (...allowedRoles) => {
-  return (req, res, next) => {
-    if (!req.user || !allowedRoles.includes(req.user.role)) {
+exports.authorize =
+  (...allowedRoles) =>
+  (req, res, next) => {
+    if (
+      !req.user ||
+      !allowedRoles
+        .map((data) => data.toLowerCase())
+        .includes(req.user.role.toLowerCase())
+    ) {
       return res
         .status(403)
         .json(new ApiResponse(403, null, "Access denied. Not authorized."));
     }
     next();
   };
-};

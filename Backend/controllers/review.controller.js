@@ -1,16 +1,19 @@
-const {asyncHandler} = require('../utils/asyncHandler');
-const {ApiResponse} = require('../utils/ApiResponse');
-const Review = require('../models/Review.model');
+const Review = require("../models/Review.model");
+const { ApiResponse } = require("../utils/ApiResponse");
+const { asyncHandler } = require("../utils/asyncHandler");
 
 exports.createReview = asyncHandler(async (req, res) => {
   const { bookingId, rating, comment, providerId } = req.body;
-  const review = new Review({
+  if (!rating || !providerId) throw new Error("rating & providerId required");
+  
+  const review = await Review.create({
     booking: bookingId,
-    user: req.user._id,
     provider: providerId,
+    user: req.user._id,
     rating,
-    comment
+    comment,
   });
+
   await review.save();
-  res.status(201).json(new ApiResponse(201, review, 'Review added'));
+  res.status(201).json(new ApiResponse(201, review, "Review added"));
 });

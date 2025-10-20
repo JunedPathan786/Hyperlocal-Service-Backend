@@ -1,20 +1,20 @@
 const express = require("express");
+const router = express.Router();
 const { body, validationResult } = require("express-validator");
 const {
   createService,
   listServices,
+  nearby,
 } = require("../controllers/service.controller");
 const { protect } = require("../middlewares/auth.middleware");
 const { authorize } = require("../middlewares/role.middleware");
 const { ROLES } = require("../utils/constants");
 
-const router = express.Router();
-
 router.post(
   "/",
   protect,
-  //  authorize('USER', 'PROVIDER', 'ADMIN'),  // allow all for testing
-  authorize(ROLES.ADMIN, ROLES.PROVIDER),
+   authorize('USER', 'PROVIDER', 'ADMIN'),  // allow all for testing
+  // authorize(ROLES.ADMIN, ROLES.PROVIDER),
   [
     body("title").notEmpty().withMessage("Title required"),
     body("basePrice").isNumeric().withMessage("Base price must be a number"),
@@ -29,5 +29,6 @@ router.post(
 );
 
 router.get("/", listServices);
+router.get("/nearby", nearby);
 
 module.exports = router;
