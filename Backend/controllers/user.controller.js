@@ -45,7 +45,7 @@ exports.deleteProfile = asyncHandler(async (req, res) => {
   if (!user)
     return res.status(401).json(new ApiResponse(401, null, "Unauthorized"));
 
-  await user.remove();
+  await user.deleteOne();
 
   res.status(200).json(new ApiResponse(200, {}, "User account deleted"));
 });

@@ -5,6 +5,6 @@ const { protect } = require("../middlewares/auth.middleware");
 
 router.get("/me", protect, getProfile);
 router.patch("/me", protect, updateProfile);
-router.delete('/me', deleteProfile)
+router.delete('/me', protect, deleteProfile)
 
 module.exports = router;

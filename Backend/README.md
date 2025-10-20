@@ -1,5 +1,5 @@
-Implement booking, review ,payment functionality.
-This commit adds new model, controller and routes for a booking, review, payment featur. It also includes updates to the Provider and  authentication controller as well as an initial implementation of  cloudinary for handling  profile images.
+<!-- Implement booking, review ,payment functionality.
+This commit adds new model, controller and routes for a booking, review, payment featur. It also includes updates to the Provider and authentication controller as well as an initial implementation of cloudinary for handling profile images. -->
 
 # Urban Company Backend Clone (CommonJS)
 
@@ -121,11 +121,12 @@ Add express-validator in any new route for input validation.
 ## Postman collection JSON
 
 ```
+
 {
   "info": {
     "name": "Urban Backend API",
     "_postman_id": "urban-backend-collection",
-    "description": "MEN stack backend API for Urban Company clone. Includes auth, providers, services, bookings, payments, reviews, admin.",
+    "description": "MERN stack backend API for Urban Company clone. Includes OTP-based auth, providers, services, bookings, payments, reviews, admin panel.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -133,7 +134,7 @@ Add express-validator in any new route for input validation.
       "name": "Auth",
       "item": [
         {
-          "name": "Register User",
+          "name": "Send OTP",
           "request": {
             "method": "POST",
             "header": [
@@ -144,19 +145,19 @@ Add express-validator in any new route for input validation.
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n "phone\": \"1234567890\"\n}"
+              "raw": "{\n  \"phone\": \"9999999999\"\n}"
             },
             "url": {
-              "raw": "http://localhost:5000/api/auth/register",
+              "raw": "http://localhost:5000/api/v1/auth/send-otp",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
-              "path": ["api","auth","register"]
+              "path": ["api", "v1", "auth", "send-otp"]
             }
           }
         },
         {
-          "name": "Login User",
+          "name": "Verify OTP",
           "request": {
             "method": "POST",
             "header": [
@@ -167,14 +168,52 @@ Add express-validator in any new route for input validation.
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"juned@example.com\",\n  \"password\": \"pass123\"\n}"
+              "raw": "{\n  \"phone\": \"9999999999\",\n  \"otp\": \"123456\"\n}"
             },
             "url": {
-              "raw": "http://localhost:5000/api/auth/login",
+              "raw": "http://localhost:5000/api/v1/auth/verify-otp",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
-              "path": ["api","auth","login"]
+              "path": ["api", "v1", "auth", "verify-otp"]
+            }
+          }
+        },
+        {
+          "name": "Logout User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <TOKEN>"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/auth/logout",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "v1", "auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <TOKEN>"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/user/me",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "user", "me"]
             }
           }
         }
@@ -202,11 +241,11 @@ Add express-validator in any new route for input validation.
               "raw": "{\n  \"bio\": \"Experienced AC repair technician\"\n}"
             },
             "url": {
-              "raw": "http://localhost:5000/api/providers/apply",
+              "raw": "http://localhost:5000/api/v1/provider/apply",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
-              "path": ["api","providers","apply"]
+              "path": ["api", "v1", "provider", "apply"]
             }
           }
         }
@@ -235,11 +274,11 @@ Add express-validator in any new route for input validation.
               ]
             },
             "url": {
-              "raw": "http://localhost:5000/api/services",
+              "raw": "http://localhost:5000/api/v1/service",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
-              "path": ["api","services"]
+              "path": ["api", "v1", "service"]
             }
           }
         },
@@ -248,11 +287,11 @@ Add express-validator in any new route for input validation.
           "request": {
             "method": "GET",
             "url": {
-              "raw": "http://localhost:5000/api/services",
+              "raw": "http://localhost:5000/api/v1/service",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
-              "path": ["api","services"]
+              "path": ["api", "v1", "service"]
             }
           }
         }
@@ -280,11 +319,11 @@ Add express-validator in any new route for input validation.
               "raw": "{\n  \"serviceId\": \"<SERVICE_ID>\",\n  \"scheduledAt\": \"2025-10-20T10:00:00Z\"\n}"
             },
             "url": {
-              "raw": "http://localhost:5000/api/bookings",
+              "raw": "http://localhost:5000/api/v1/booking",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
-              "path": ["api","bookings"]
+              "path": ["api", "v1", "booking"]
             }
           }
         },
@@ -299,11 +338,11 @@ Add express-validator in any new route for input validation.
               }
             ],
             "url": {
-              "raw": "http://localhost:5000/api/bookings/me",
+              "raw": "http://localhost:5000/api/v1/booking/me",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
-              "path": ["api","bookings","me"]
+              "path": ["api", "v1", "booking", "me"]
             }
           }
         }
@@ -331,11 +370,11 @@ Add express-validator in any new route for input validation.
               "raw": "{\n  \"bookingId\":\"<BOOKING_ID>\"\n}"
             },
             "url": {
-              "raw": "http://localhost:5000/api/payments/order",
+              "raw": "http://localhost:5000/api/v1/payment/order",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
-              "path": ["api","payments","order"]
+              "path": ["api", "v1", "payment", "order"]
             }
           }
         },
@@ -358,11 +397,11 @@ Add express-validator in any new route for input validation.
               "raw": "{\n  \"razorpay_order_id\":\"<ORDER_ID>\",\n  \"razorpay_payment_id\":\"<PAYMENT_ID>\",\n  \"razorpay_signature\":\"<SIGNATURE>\",\n  \"bookingId\":\"<BOOKING_ID>\",\n  \"amount\":500\n}"
             },
             "url": {
-              "raw": "http://localhost:5000/api/payments/verify",
+              "raw": "http://localhost:5000/api/v1/payment/verify",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
-              "path": ["api","payments","verify"]
+              "path": ["api", "v1", "payment", "verify"]
             }
           }
         }
@@ -390,11 +429,11 @@ Add express-validator in any new route for input validation.
               "raw": "{\n  \"bookingId\":\"<BOOKING_ID>\",\n  \"providerId\":\"<PROVIDER_ID>\",\n  \"rating\":5,\n  \"comment\":\"Great service!\"\n}"
             },
             "url": {
-              "raw": "http://localhost:5000/api/reviews",
+              "raw": "http://localhost:5000/api/v1/review",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
-              "path": ["api","reviews"]
+              "path": ["api", "v1", "review"]
             }
           }
         }
@@ -414,11 +453,11 @@ Add express-validator in any new route for input validation.
               }
             ],
             "url": {
-              "raw": "http://localhost:5000/api/admin/stats",
+              "raw": "http://localhost:5000/api/v1/admin/stats",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
-              "path": ["api","admin","stats"]
+              "path": ["api", "v1", "admin", "stats"]
             }
           }
         }
@@ -426,5 +465,6 @@ Add express-validator in any new route for input validation.
     }
   ]
 }
+
 
 ```
