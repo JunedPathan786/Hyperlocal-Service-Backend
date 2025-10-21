@@ -22,9 +22,6 @@ const serviceSchema = new mongoose.Schema(
       type: Number,
       default: 60,
     },
-    image: {
-      type: String,
-    },
     provider: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Provider",
@@ -43,8 +40,6 @@ const serviceSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
-serviceSchema.index({ location: "2dsphere" });
 
 const Service = mongoose.model("Service", serviceSchema);
 module.exports = Service;

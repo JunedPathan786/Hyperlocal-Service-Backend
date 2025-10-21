@@ -1,6 +1,3 @@
-<!-- Implement booking, review ,payment functionality.
-This commit adds new model, controller and routes for a booking, review, payment featur. It also includes updates to the Provider and authentication controller as well as an initial implementation of cloudinary for handling profile images. -->
-
 # Urban Company Backend Clone (CommonJS)
 
 This is a compact, fully-featured backend API for an Urban Company-style service marketplace.  
@@ -47,13 +44,15 @@ npm install
 ```
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/urban_company
+
 JWT_ACCESS_SECRET=change_this_access_secret
 JWT_REFRESH_SECRET=change_this_refresh_secret
-ACCESS_TOKEN_EXPIRES=15m
-REFRESH_TOKEN_EXPIRES=30d
-FRONTEND_URL=http://localhost:3000
+
+CORS_ORIGINE=http://localhost:3000
+
 RAZORPAY_KEY_ID=<YOUR_KEY_ID>
 RAZORPAY_KEY_SECRET=<YOUR_KEY_SECRET>
+
 CLOUDINARY_NAME=<YOUR_CLOUD_NAME>
 CLOUDINARY_API_KEY=<YOUR_API_KEY>
 CLOUDINARY_API_SECRET=<YOUR_API_SECRET>
@@ -111,8 +110,6 @@ Admin stats
 Use MongoDB Compass or Atlas for database.
 
 Replace Razorpay dummy keys with production keys for live payments.
-
-Services images are uploaded to Cloudinary automatically via multer-storage-cloudinary.
 
 Add express-validator in any new route for input validation.
 

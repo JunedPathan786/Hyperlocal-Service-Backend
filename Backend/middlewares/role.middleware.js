@@ -1,11 +1,11 @@
 const { ApiResponse } = require("../utils/ApiResponse");
 
 exports.authorize =
-  (...allowedRoles) =>
+  (...allowed) =>
   (req, res, next) => {
     if (
       !req.user ||
-      !allowedRoles
+      !allowed
         .map((data) => data.toLowerCase())
         .includes(req.user.role.toLowerCase())
     ) {

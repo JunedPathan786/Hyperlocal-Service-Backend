@@ -40,7 +40,5 @@ const providerSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-providerSchema.index({ location: "2dsphere" });
-
 const Provider = mongoose.model("Provider", providerSchema);
 module.exports = Provider;

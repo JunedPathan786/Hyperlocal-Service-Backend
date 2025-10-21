@@ -3,7 +3,7 @@ const Service = require("../models/Service.model");
 const { ApiResponse } = require("../utils/ApiResponse");
 const { asyncHandler } = require("../utils/asyncHandler");
 
-exports.createBooking = asyncHandler(async (req, res) => {
+const createBooking = asyncHandler(async (req, res) => {
   const { serviceId, scheduledAt } = req.body;
   const service = await Service.findById(serviceId);
   if (!service)
@@ -22,9 +22,14 @@ exports.createBooking = asyncHandler(async (req, res) => {
   res.status(201).json(new ApiResponse(201, booking, "Booking created"));
 });
 
-exports.getUserBookings = asyncHandler(async (req, res) => {
+const getUserBookings = asyncHandler(async (req, res) => {
   const bookings = await Booking.find({ user: req.user._id }).populate(
     "service provider"
   );
   res.json(new ApiResponse(200, bookings));
 });
+
+module.exports = {
+  createBooking,
+  getUserBookings,
+};

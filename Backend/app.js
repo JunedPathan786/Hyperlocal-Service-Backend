@@ -7,7 +7,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:4000",
+    origin: process.env.CORS_ORIGIN || "*",
     credentials: true,
   })
 );
@@ -25,7 +25,7 @@ const reviewRoute = require("./routes/review.routes");
 const adminRoute = require("./routes/admin.routes");
 
 app.use("/api/v1/auth", authRoute);
-app.use("/api/user", userRoute);
+app.use("/api/v1/user", userRoute);
 app.use("/api/v1/provider", providerRoute);
 app.use("/api/v1/service", serviceRoute);
 app.use("/api/v1/booking", bookingRoute);

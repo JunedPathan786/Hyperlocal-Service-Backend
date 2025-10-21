@@ -13,8 +13,8 @@ const { ROLES } = require("../utils/constants");
 router.post(
   "/",
   protect,
-   authorize('USER', 'PROVIDER', 'ADMIN'),  // allow all for testing
-  // authorize(ROLES.ADMIN, ROLES.PROVIDER),
+  //  authorize('USER', 'PROVIDER', 'ADMIN'),  // allow all for testing
+  authorize(ROLES.ADMIN, ROLES.PROVIDER),
   [
     body("title").notEmpty().withMessage("Title required"),
     body("basePrice").isNumeric().withMessage("Base price must be a number"),

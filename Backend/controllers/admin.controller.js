@@ -4,7 +4,7 @@ const Booking = require("../models/Booking.model");
 const { ApiResponse } = require("../utils/ApiResponse");
 const { asyncHandler } = require("../utils/asyncHandler");
 
-exports.getStats = asyncHandler(async (req, res) => {
+const getStats = asyncHandler(async (req, res) => {
   const user = await User.countDocuments();
   const provider = await Provider.countDocuments();
   const booking = await Booking.countDocuments();
@@ -15,10 +15,15 @@ exports.getStats = asyncHandler(async (req, res) => {
     );
 });
 
-exports.approveProvider = asyncHandler(async (req, res) => {
+const approveProvider = asyncHandler(async (req, res) => {
   const provider = await Provider.findById(req.params.id);
   if (!provider) throw new Error("Provider not found");
   provider.approved = true;
   await provider.save();
   res.status(200).json(new ApiResponse(200, provider, "Provider approved"));
 });
+
+module.exports = {
+  getStats,
+  approveProvider,
+};

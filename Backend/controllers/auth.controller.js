@@ -11,22 +11,18 @@ function generateAccessToken(user) {
   return jwt.sign(
     { id: user._id, role: user.role },
     process.env.JWT_TOKEN_SECRET,
-    { expiresIn: process.env. JWT_TOKEN_EXPIRY || "1d" }
+    { expiresIn: process.env.JWT_TOKEN_EXPIRY || "15m" }
   );
 }
 
-exports.sendOtp = asyncHandler(async (req, res) => {
+const sendOtp = asyncHandler(async (req, res) => {
   const { phone } = req.body;
   if (!phone) throw new ApiError(400, "Phone number is required");
 
   const otp = generateOTP();
   const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
-  await Otp.findOneAndUpdate(
-    { phone },
-    { otp, otpExpiry },
-    { upsert: true, new: true }
-  );
+  await Otp.findOneAndUpdate({ phone }, { otp, otpExpiry });
 
   console.log(`OTP for ${phone}: ${otp}`);
 
@@ -35,7 +31,7 @@ exports.sendOtp = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { phone, otp }, "OTP sent successfully"));
 });
 
-exports.verifyOtp = asyncHandler(async (req, res) => {
+const verifyOtp = asyncHandler(async (req, res) => {
   const { phone, otp, name, email, password } = req.body;
   if (!phone || !otp) throw new ApiError(400, "Phone and OTP are required");
 
@@ -60,7 +56,7 @@ exports.verifyOtp = asyncHandler(async (req, res) => {
   await Otp.deleteOne({ phone });
 
   const token = generateAccessToken(user);
-  res.cookie("accessToken", token, { httpOnly: true });
+  res.cookie("accessToken", token);
 
   res
     .status(200)
@@ -73,7 +69,7 @@ exports.verifyOtp = asyncHandler(async (req, res) => {
     );
 });
 
-exports.loginUser = asyncHandler(async (req, res) => {
+const loginUser = asyncHandler(async (req, res) => {
   const { phone, password } = req.body;
   if (!phone || !password)
     throw new ApiError(400, "Phone and password are required");
@@ -85,13 +81,20 @@ exports.loginUser = asyncHandler(async (req, res) => {
   if (!isvalid) throw new ApiError(401, "Invalid password");
 
   const token = generateAccessToken(user);
-  res.cookie("accessToken", token, { httpOnly: true });
+  res.cookie("accessToken", token);
   res
     .status(200)
     .json(new ApiResponse(200, { user, token }, "Login successful"));
 });
 
-exports.logoutUser = asyncHandler(async (req, res) => {
+const logoutUser = asyncHandler(async (req, res) => {
   res.clearCookie("accessToken");
   res.status(200).json(new ApiResponse(200, {}, "Logged out successfully"));
 });
+
+module.exports = {
+  sendOtp,
+  verifyOtp,
+  loginUser,
+  logoutUser,
+};

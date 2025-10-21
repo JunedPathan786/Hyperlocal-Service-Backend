@@ -1,4 +1,5 @@
-require("dotenv").config();
+const dotenv = require('dotenv')
+dotenv.config()
 const app = require("./app");
 const connectDB = require("./db/db");
 
@@ -9,7 +10,7 @@ connectDB()
       console.log(`Server running on port : ${PORT}`);
     });
   })
-  .catch((error) => {
-    console.error("MongoDB connection failed:", err.message);
+  .catch((err) => {
+    console.error("DB connection failed:", err.message);
     process.exit(1);
   });
