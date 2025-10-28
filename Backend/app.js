@@ -13,7 +13,6 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser());
-app.use(errorHandler);
 
 const authRoute = require("./routes/auth.routes");
 const userRoute = require("./routes/user.routes");
@@ -32,6 +31,8 @@ app.use("/api/v1/booking", bookingRoute);
 app.use("/api/v1/payment", paymentRoute);
 app.use("/api/v1/review", reviewRoute);
 app.use("/api/v1/admin", adminRoute);
+
+app.use(errorHandler);
 
 app.get("/", (req, res) => {
   res.send("Urban Company API — Developed by Juned Pathan");

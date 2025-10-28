@@ -5,7 +5,7 @@ const { ApiResponse } = require("../utils/ApiResponse");
 const { asyncHandler } = require("../utils/asyncHandler");
 const { ApiError } = require("../utils/ApiError");
 
-const applyProvider = asyncHandler(async (req, res) => {
+exports.applyProvider = asyncHandler(async (req, res) => {
   if (!req.user)
     throw new ApiError(401, "Unauthorized request. Please login first.");
 
@@ -53,7 +53,7 @@ const applyProvider = asyncHandler(async (req, res) => {
     );
 });
 
-const getProvider = asyncHandler(async (req, res) => {
+exports.getProvider = asyncHandler(async (req, res) => {
   const provider = await Provider.findById(req.params.id)
     .populate("user", "name email")
     .populate("servicesOffered");
@@ -62,8 +62,3 @@ const getProvider = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, provider, "Provider details fetched"));
 });
-
-module.exports = {
-  applyProvider,
-  getProvider,
-};

@@ -2,7 +2,17 @@ const { ApiResponse } = require("../utils/ApiResponse");
 const { asyncHandler } = require("../utils/asyncHandler");
 const User = require("../models/User.model");
 
-const getProfile = asyncHandler(async (req, res) => {
+exports.dashboard = asyncHandler(async (req, res) => {
+  res.json(
+    new ApiResponse(
+      200,
+      { user: req.user },
+      `Welcome to the dashboard, ${req.user.fullname}`
+    )
+  );
+});
+
+exports.getUserDetails = asyncHandler(async (req, res) => {
   const user = req.user;
   if (!user) res.status(401).json(new ApiResponse(401, null, "Unauthorized"));
 
@@ -11,7 +21,7 @@ const getProfile = asyncHandler(async (req, res) => {
       200,
       {
         id: req.user._id,
-        name: req.user.name,
+        name: req.user.fullname,
         phone: req.user.phone,
         email: req.user.email,
         role: req.user.role,
@@ -22,7 +32,7 @@ const getProfile = asyncHandler(async (req, res) => {
   );
 });
 
-const updateProfile = asyncHandler(async (req, res) => {
+exports.updateProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id).select("-password");
   if (!user)
     return res.status(401).json(new ApiResponse(401, null, "Unauthorized"));
@@ -38,19 +48,3 @@ const updateProfile = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, user, "Profile updated successfully"));
 });
-
-const deleteProfile = asyncHandler(async (req, res) => {
-  const user = req.user;
-  if (!user)
-    return res.status(401).json(new ApiResponse(401, null, "Unauthorized"));
-
-  await user.deleteOne();
-
-  res.status(200).json(new ApiResponse(200, {}, "User account deleted"));
-});
-
-module.exports = {
-  getProfile,
-  updateProfile,
-  deleteProfile,
-};

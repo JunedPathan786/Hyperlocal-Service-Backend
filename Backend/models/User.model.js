@@ -3,28 +3,37 @@ const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema(
   {
-    name: {
+    fullname: {
       type: String,
+      require: true,
       trim: true,
       index: true,
     },
     email: {
       type: String,
+      require: true,
       unique: true,
-      lowercase: true,
       trim: true,
-      sparse: true,
+      match: [/^\S+@\S+\.\S+$/, "Please enter a valid email"],
     },
     password: {
       type: String,
-      trim: true,
-      select: false,
+      require: true,
       minlength: 6,
     },
     phone: {
       type: String,
       required: true,
       unique: true,
+    },
+    otp: {
+      type: String,
+      required: true,
+    },
+    otpExpiry: {
+      type: Date,
+      default: Date.now,
+      expires: 300,
     },
     isVerified: {
       type: Boolean,

@@ -1,10 +1,14 @@
 const express = require("express");
 const router = express.Router();
-const { getProfile, updateProfile, deleteProfile } = require("../controllers/user.controller");
+const {
+  getUserDetails,
+  updateProfile,
+  dashboard,
+} = require("../controllers/user.controller");
 const { protect } = require("../middlewares/auth.middleware");
 
-router.get("/me", protect, getProfile);
+router.get("/dashboard", protect, dashboard);
+router.get("/me", protect, getUserDetails);
 router.patch("/me", protect, updateProfile);
-router.delete('/me', protect, deleteProfile)
 
 module.exports = router;

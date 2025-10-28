@@ -12,4 +12,7 @@ const BOOKING_STATUS = {
   CANCELLED: 'cancelled'
 };
 
+exports.OTP_EXPIRY_MINUTES = 5;
+exports.TOKEN_EXPIRY_DAYS = 7;
+
 module.exports = { ROLES, BOOKING_STATUS };

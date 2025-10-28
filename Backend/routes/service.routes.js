@@ -6,7 +6,7 @@ const {
   listServices,
   nearby,
 } = require("../controllers/service.controller");
-const { protect } = require("../middlewares/auth.middleware");
+const {protect}  = require("../middlewares/auth.middleware");
 const { authorize } = require("../middlewares/role.middleware");
 const { ROLES } = require("../utils/constants");
 

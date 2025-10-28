@@ -10,7 +10,7 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-const createOrder = asyncHandler(async (req, res) => {
+exports.createOrder = asyncHandler(async (req, res) => {
   const { bookingId } = req.body;
   const booking = await Booking.findById(bookingId);
   if (!booking) throw new Error("Booking not found");
@@ -34,7 +34,7 @@ const createOrder = asyncHandler(async (req, res) => {
   res.json(new ApiResponse(200, { order, payment }, "Razorpay order created"));
 });
 
-const verifyPayment = asyncHandler(async (req, res) => {
+exports.verifyPayment = asyncHandler(async (req, res) => {
   const {
     razorpay_order_id,
     razorpay_payment_id,
@@ -61,8 +61,3 @@ const verifyPayment = asyncHandler(async (req, res) => {
 
   res.json(new ApiResponse(200, payment, "Payment verified"));
 });
-
-module.exports = {
-  createOrder,
-  verifyPayment,
-};

@@ -1,100 +1,123 @@
 const User = require("../models/User.model");
-const Otp = require("../models/Otp.model");
-const { generateOTP, isOTPExpired } = require("../utils/OTP");
-const { asyncHandler } = require("../utils/asyncHandler");
-const { ApiError } = require("../utils/ApiError");
-const { ApiResponse } = require("../utils/ApiResponse");
+const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+const { asyncHandler } = require("../utils/asyncHandler");
+const { ApiResponse } = require("../utils/ApiResponse");
+const { ApiError } = require("../utils/ApiError");
 
-function generateAccessToken(user) {
-  return jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_TOKEN_SECRET,
-    { expiresIn: process.env.JWT_TOKEN_EXPIRY || "15m" }
-  );
-}
-
-const sendOtp = asyncHandler(async (req, res) => {
-  const { phone } = req.body;
-  if (!phone) throw new ApiError(400, "Phone number is required");
-
-  const otp = generateOTP();
-  const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-
-  await Otp.findOneAndUpdate({ phone }, { otp, otpExpiry });
-
-  console.log(`OTP for ${phone}: ${otp}`);
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, { phone, otp }, "OTP sent successfully"));
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "junedp068@gmail.com",
+    pass: "xlohlmixurkpffbe",
+  },
 });
 
-const verifyOtp = asyncHandler(async (req, res) => {
-  const { phone, otp, name, email, password } = req.body;
-  if (!phone || !otp) throw new ApiError(400, "Phone and OTP are required");
+const generateOTP = () => crypto.randomInt(100000, 999999).toString();
 
-  const otpDoc = await Otp.findOne({ phone });
-  if (!otpDoc) throw new ApiError(400, "No OTP generated for this phone");
-  if (isOTPExpired(otpDoc.otpExpiry)) throw new ApiError(400, "OTP expired");
-  if (otpDoc.otp !== otp) throw new ApiError(400, "Invalid OTP");
+const generateToken = (user) => {
+  return jwt.sign(
+    { id: user._id, email: user.email, fullname: user.fullname },
+    process.env.JWT_SECRET || "yourSecretKey",
+    { expiresIn: "7d" }
+  );
+};
 
-  let user = await User.findOne({ phone });
-  if (!user) {
-    user = await User.create({ name, email, phone, password });
-  } else {
-    if (name) user.name = name;
-    if (email) user.email = email;
-    if (password) user.password = password;
-    await user.save();
-  }
+exports.register = asyncHandler(async (req, res) => {
+  const { fullname, email, phone, password } = req.body;
 
-  user.isVerified = true;
+  let user = await User.findOne({ email });
+  if (user) throw new ApiError(400, "User already exists");
+
+  const otp = generateOTP();
+  const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+  user = new User({ fullname, email, phone, password, otp, otpExpiry });
   await user.save();
 
-  await Otp.deleteOne({ phone });
-
-  const token = generateAccessToken(user);
-  res.cookie("accessToken", token);
+  await transporter.sendMail({
+    from: "junedp068@gmail.com",
+    to: email,
+    subject: "OTP Verification",
+    text: `Your OTP is: ${otp}`,
+  });
 
   res
-    .status(200)
+    .status(201)
     .json(
       new ApiResponse(
-        200,
-        { user, token },
-        "OTP verified and user authenticated"
+        201,
+        null,
+        "User registered. Please verify OTP sent to email."
       )
     );
 });
 
-const loginUser = asyncHandler(async (req, res) => {
-  const { phone, password } = req.body;
-  if (!phone || !password)
-    throw new ApiError(400, "Phone and password are required");
+exports.verifyOTP = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
+  let user = await User.findOne({ email });
 
-  const user = await User.findOne({ phone }).select("+password");
-  if (!user) throw new ApiError(404, "User not found");
+  if (!user) throw new ApiError(400, "User not found");
+  if (user.isVerified) throw new ApiError(400, "User already verified");
 
-  const isvalid = await bcrypt.compare(password, user.password || "");
-  if (!isvalid) throw new ApiError(401, "Invalid password");
+  if (user.otp !== otp || user.otpExpiry < new Date()) {
+    throw new ApiError(400, "Invalid or expired OTP");
+  }
 
-  const token = generateAccessToken(user);
-  res.cookie("accessToken", token);
-  res
-    .status(200)
-    .json(new ApiResponse(200, { user, token }, "Login successful"));
+  user.isVerified = true;
+  user.otp = undefined;
+  user.otpExpiry = undefined;
+  await user.save();
+
+  const token = generateToken(user);
+
+  res.json(
+    new ApiResponse(
+      200,
+      { token },
+      "Email verified successfully. You can now log in."
+    )
+  );
 });
 
-const logoutUser = asyncHandler(async (req, res) => {
-  res.clearCookie("accessToken");
-  res.status(200).json(new ApiResponse(200, {}, "Logged out successfully"));
+exports.resendOTP = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  let user = await User.findOne({ email });
+
+  if (!user) throw new ApiError(400, "User not found");
+  if (user.isVerified) throw new ApiError(400, "User already verified");
+
+  const otp = generateOTP();
+  user.otp = otp;
+  user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+  await user.save();
+
+  await transporter.sendMail({
+    from: "junedp068@gmail.com",
+    to: email,
+    subject: "Resend OTP Verification",
+    text: `Your new OTP is: ${otp}`,
+  });
+
+  res.json(new ApiResponse(200, null, "OTP resent successfully."));
 });
 
-module.exports = {
-  sendOtp,
-  verifyOtp,
-  loginUser,
-  logoutUser,
-};
+exports.login = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user) throw new ApiError(400, "User not found");
+  if (user.password !== password) throw new ApiError(400, "Incorrect password");
+  if (!user.isVerified)
+    throw new ApiError(400, "Email not verified. Please verify OTP.");
+
+  const token = generateToken(user);
+
+  res.json(new ApiResponse(200, { token }, "Login successful."));
+});
+
+exports.logout = asyncHandler(async (req, res) => {
+  res.json(new ApiResponse(200, null, "Logged out successfully."));
+});
+
+

@@ -2,7 +2,7 @@ const Service = require("../models/Service.model");
 const { ApiResponse } = require("../utils/ApiResponse");
 const { asyncHandler } = require("../utils/asyncHandler");
 
-const createService = asyncHandler(async (req, res) => {
+exports.createService = asyncHandler(async (req, res) => {
   const { title, basePrice, durationMin, coordinates } = req.body;
 
   if (!title || !basePrice) {
@@ -35,14 +35,14 @@ const createService = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, service, "Service created successfully"));
 });
 
-const listServices = asyncHandler(async (req, res) => {
+exports.listServices = asyncHandler(async (req, res) => {
   const services = await Service.find().populate("provider", "name email");
   return res
     .status(200)
     .json(new ApiResponse(200, services, "Services fetched successfully"));
 });
 
-const nearby = asyncHandler(async (req, res) => {
+exports.nearby = asyncHandler(async (req, res) => {
   const { lng, lat } = req.query;
 
   if (!lng || !lat) {
@@ -70,8 +70,3 @@ const nearby = asyncHandler(async (req, res) => {
     );
 });
 
-module.exports = {
-  createService,
-  listServices,
-  nearby,
-};
