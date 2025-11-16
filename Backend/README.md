@@ -131,7 +131,7 @@ Add express-validator in any new route for input validation.
       "name": "Auth",
       "item": [
         {
-          "name": "Send OTP",
+          "name": "Registration",
           "request": {
             "method": "POST",
             "header": [
@@ -142,14 +142,14 @@ Add express-validator in any new route for input validation.
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"9999999999\"\n}"
+              "raw": "{\n  \"fullname\": \"test test\",\n  \"email\": \"user@test.com\"\n,\n  \"password\": \"9999999999\",\n  \"phone\": \"9999999999\"}"
             },
             "url": {
               "raw": "http://localhost:5000/api/v1/auth/send-otp",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
-              "path": ["api", "v1", "auth", "send-otp"]
+              "path": ["api", "v1", "auth", "registration"]
             }
           }
         },
@@ -165,7 +165,7 @@ Add express-validator in any new route for input validation.
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"9999999999\",\n  \"otp\": \"123456\"\n}"
+              "raw": "{\n  \"email\": \"user@test.com\",\n  \"otp\": \"123456\"\n}"
             },
             "url": {
               "raw": "http://localhost:5000/api/v1/auth/verify-otp",

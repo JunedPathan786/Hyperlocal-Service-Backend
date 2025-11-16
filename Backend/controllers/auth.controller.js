@@ -1,6 +1,7 @@
 const User = require("../models/User.model");
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const { asyncHandler } = require("../utils/asyncHandler");
 const { ApiResponse } = require("../utils/ApiResponse");
 const { ApiError } = require("../utils/ApiError");
@@ -8,8 +9,8 @@ const { ApiError } = require("../utils/ApiError");
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "junedp068@gmail.com",
-    pass: "xlohlmixurkpffbe",
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
 });
 
@@ -18,7 +19,7 @@ const generateOTP = () => crypto.randomInt(100000, 999999).toString();
 const generateToken = (user) => {
   return jwt.sign(
     { id: user._id, email: user.email, fullname: user.fullname },
-    process.env.JWT_SECRET || "yourSecretKey",
+    process.env.JWT_TOKEN_SECRET || "yourSecretKey",
     { expiresIn: "7d" }
   );
 };
@@ -31,12 +32,11 @@ exports.register = asyncHandler(async (req, res) => {
 
   const otp = generateOTP();
   const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
-
-  user = new User({ fullname, email, phone, password, otp, otpExpiry });
+ user = new User({ fullname, email, phone, password, otp, otpExpiry });
   await user.save();
 
   await transporter.sendMail({
-    from: "junedp068@gmail.com",
+    from: process.env.EMAIL_USER,
     to: email,
     subject: "OTP Verification",
     text: `Your OTP is: ${otp}`,
@@ -93,7 +93,7 @@ exports.resendOTP = asyncHandler(async (req, res) => {
   await user.save();
 
   await transporter.sendMail({
-    from: "junedp068@gmail.com",
+    from: process.env.EMAIL_USER,
     to: email,
     subject: "Resend OTP Verification",
     text: `Your new OTP is: ${otp}`,
@@ -107,7 +107,11 @@ exports.login = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (!user) throw new ApiError(400, "User not found");
-  if (user.password !== password) throw new ApiError(400, "Incorrect password");
+
+  const isMatch = await user.comparePassword(password);
+
+  if (!isMatch) throw new ApiError(400, "Incorrect password");
+
   if (!user.isVerified)
     throw new ApiError(400, "Email not verified. Please verify OTP.");
 
@@ -119,5 +123,3 @@ exports.login = asyncHandler(async (req, res) => {
 exports.logout = asyncHandler(async (req, res) => {
   res.json(new ApiResponse(200, null, "Logged out successfully."));
 });
-
-
